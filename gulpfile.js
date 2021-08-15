@@ -1,5 +1,6 @@
 const {src, dest, watch, parallel, series} = require('gulp');
 
+const pug = require('gulp-pug');
 const scss         = require('gulp-sass');
 const concat       = require('gulp-concat');
 const browserSync  = require('browser-sync').create();
@@ -36,6 +37,17 @@ function images(){
 ]))
   .pipe(dest('dist/images'))
 }
+
+function views(){
+  return src(['app/pages/*.pug'])
+    .pipe(
+      pug({
+        pretty:true
+             })
+    )
+    .pipe(dest('app'))
+    .pipe(browserSync.stream())
+    }
 
 function scripts(){
   return src([
@@ -74,12 +86,14 @@ function build(){
 }
 
 function watching(){
+  watch(['app/pages/*.pug'], views);
+  watch(['app/pages/**/**/*.pug'], views);
   watch(['app/scss/**/*.scss'], styles);
   watch(['app/js/**/*.js', '!app/js/main.min.js'], scripts);
   watch(['app/*.html']).on ('change', browserSync.reload);
 }
 
-
+exports.views = views;
 exports.styles = styles;
 exports.watching = watching;
 exports.browsersync = browsersync;
@@ -89,5 +103,5 @@ exports.cleanDist = cleanDist;
 exports.build = series(cleanDist, images,build);
 
 
-exports.default = parallel(styles, scripts, browsersync, watching);
+exports.default = parallel(views, styles, scripts, watching, browsersync);
 
